@@ -41,6 +41,22 @@
       volumes:
         - ./npmdb/data/mysql:/var/lib/mysql
       restart: unless-stopped
+    
+    nginx:
+      container_name: nginx
+      image: nginx:latest
+      restart: unless-stopped
+      environment:
+        - TZ=Asia/Seoul
+      ports: 
+        - 8080:80
+      volumes:
+        - ./nginx/html:/usr/share/nginx/html
+        - ./nginx/conf:/etc/nginx
+
+  networks:
+    default:
+      name: dorandoran
   ```
 - `docker-compose-static.yml` 실행
   - 백그라운드로 실행해야 하기 때문에, 반드시 데몬 옵션(`-d`)을 붙여 실행
