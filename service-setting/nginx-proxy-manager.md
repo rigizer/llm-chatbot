@@ -20,8 +20,6 @@
         DB_MYSQL_USER: "npmuser"
         DB_MYSQL_PASSWORD: "dorandoran"
         DB_MYSQL_NAME: "npm"
-        # Uncomment this if IPv6 is not enabled on your host
-        # DISABLE_IPV6: 'true'
       volumes:
         - ./npm/data:/data
         - /etc/letsencrypt:/etc/letsencrypt
@@ -52,7 +50,6 @@
         - 8080:80
       volumes:
         - ./nginx/html:/usr/share/nginx/html
-        - ./nginx/conf:/etc/nginx
 
   networks:
     default:
@@ -112,7 +109,7 @@
   - Domain Names에 `dorandoran.duckdns.org` 입력
   - Forward Hostname / IP에 `nginx` 입력 (nginx의 컨테이너 이름)
     - docker는 아이피 혹은 컨테이너 이름으로 통신할 수 있다
-  - Forward Port에 `8080` 입력 (컨테이너의 내부 통신 포트)
+  - Forward Port에 `80` 입력 (컨테이너의 내부 통신 포트)
   - Websockets Support의 버튼을 `활성화`
   - SSL 탭에 들어가, SSL Certificate을 None 대신 `*dorandoran.duckdns.org, dorandoran.duckdns.org`로 설정.
   - 이후, `Save` 버튼 클릭
