@@ -32,6 +32,7 @@
   rm ~/get-docker.sh
   ```
 - docker 명령어 사용 시 일반 사용자 권한으로도 쓸 수 있게 설정
+  - `[주의] 단, 해당 명령어 사용 후 사용하고 있던 쉘을 껐다 켜야 반영됨.`
   ```
   sudo usermod -aG docker ${USER}
   ```
