@@ -8,7 +8,33 @@
   - 여러 개의 docker 컨테이너와, 각각의 속성을 하나의 `.yml` 파일로 관리하는 것
   - 최근에는 `docker compose`로 대체되는 추세임 (`docker` 패키지 내장)
 
-## docker 설치
+## docker 설치 (Windows)
+
+- Docker 공식 홈페이지에서 Docker Desktop 다운로드 및 설치
+  - [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/)
+- WSL2 설치 (Windows 10, 21H1 이상), Powershell을 관리자 권한으로 실행 후 다음 명령어 입력
+  - WSL2 설치
+    ```
+    wsl --install
+    ```
+  - WSL 버전을 2로 변경
+    ```
+    wsl --set-default-version-2
+    ```
+  - WSL2 Linux 커널 업데이트 다운로드 및 설치
+    - [https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi](https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi)
+  - WSL 패키지 최신 업데이트
+    - wsl --update
+  - Microsoft Store에서 Ubuntu 패키지 설치
+  - 패키지 설치 후 Ubuntu 앱 실행, 이후 `Installing. this may take few minutes...` 메세지가 사라질 때 까지 대기.
+  - 이후, 리눅스 사용자 이름과 비밀번호를 지정하여 초기 셋업을 진행한다
+- Windows Docker 사용 시 주의사항
+  - WSL을 설치해야 Windows Docker를 사용할 수 있으며, WSL 사용 시 `제어판` - `프로그램` - `프로그램 및 기능` - `Windows 기능 켜기/끄기`에서 다음 두 가지 옵션을 켠다.
+    - `Hyper-V`
+    - `Linux용 Windows 하위 시스템`
+  - 단, 두 가지 옵션을 켜면 `VMware` 및 `Virtual Box`는 사용할 수 없음.
+
+## docker 설치 (Ubuntu)
 
 ### docker 설치
 - `add-apt-repository` 명령을 사용하기 위한 패키지 설치
