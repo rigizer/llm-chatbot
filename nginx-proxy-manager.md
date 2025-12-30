@@ -14,6 +14,7 @@
         - '443:443'
         - '8088:81'
       environment:
+        TZ: Asia/Seoul
         DB_MYSQL_HOST: "npmdb"
         DB_MYSQL_PORT: 3306
         DB_MYSQL_USER: "npmuser"
