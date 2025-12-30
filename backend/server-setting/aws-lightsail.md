@@ -57,10 +57,19 @@ ssh ubuntu@dorandoran.duckdns.org -i lightsail-ssh-public-key.pem
 
 ### 패키지 목록 업데이트 및 패키지 업데이트
 - 패키지를 다운받는 미러서버의 주소가 변경되었기 때문에, update를 진행한다
-- 패키지 목록 업데이트 및 최신 패키지 업그레이드 (+ 사용하지 않는 종속 패키지 제거)
+- 패키지 목록 업데이트
   ```
-  sudo apt-get -y update && sudo apt-get -y upgrade && sudo apt-get -y autoremove --purge
+  sudo apt-get -y update
   ```
+- 최신 패키지로 업그레이드
+  ```
+  sudo apt-get --yes --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade
+  ```
+- 사용하지 않는 종속 패키지 제거
+  ```
+  sudo apt-get -y autoremove --purge
+  ```
+- 기타 오류 대처방법
   - 패키지 목록 업데이트 도중 다음과 같은 문구가 나오면 `ENTER` 키를 누른다.
   ```
   What do you want to do about modified configuration file sshd_config?
