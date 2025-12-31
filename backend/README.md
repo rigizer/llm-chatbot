@@ -104,7 +104,7 @@
   docker rm backend || true
   ```
   ```
-  docker rmi backend || true
+  docker rmi rigizer/llm-chatbot:latest || true
   ```
   ```
   docker pull rigizer/llm-chatbot:latest
