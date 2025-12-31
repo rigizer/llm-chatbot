@@ -1,4 +1,3 @@
-<!-- frontend/chat.html -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -21,6 +20,15 @@
             align-items: center;
             justify-content: center;
         }
+
+.header h1 {
+    font-size: 1.3rem;
+    font-weight: 700;
+
+    /* 🔹 타이틀 그림자 효과 */
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
 
         .app-container {
             width: 100%;
@@ -49,21 +57,10 @@
         .header p {
             margin-top: 6px;
             font-size: 0.85rem;
-            opacity: 0.95;
         }
 
         .top-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             padding: 6px 10px 0;
-            background: #fff0f5;
-        }
-
-        .chat-info {
-            font-size: 0.75rem;
-            color: #b46a82;
-            padding: 4px 10px;
             background: #fff0f5;
         }
 
@@ -76,9 +73,16 @@
             text-decoration: underline;
         }
 
+        .chat-info {
+            font-size: 0.75rem;
+            color: #b46a82;
+            padding: 4px 10px;
+            background: #fff0f5;
+        }
+
         .chat-preview {
             flex: 1;
-            padding: 10px 10px 6px;
+            padding: 10px;
             background: #fff0f5;
             display: flex;
             flex-direction: column;
@@ -106,6 +110,20 @@
             color: #fff;
             align-self: flex-end;
             border-bottom-right-radius: 6px;
+        }
+
+        /* 🔹 로딩 애니메이션 */
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.4s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%   { content: ''; }
+            25%  { content: '.'; }
+            50%  { content: '..'; }
+            75%  { content: '...'; }
+            100% { content: ''; }
         }
 
         .input-area {
@@ -136,10 +154,6 @@
             font-size: 0.85rem;
         }
 
-        .input-area button:hover {
-            background: #ff4f7b;
-        }
-
         .input-area button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
@@ -154,146 +168,107 @@
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <div class="header">
-            <h1>연애 시뮬레이션 챗봇</h1>
-            <p>지금부터는 상대방 입장에서 직접 대화해요</p>
-        </div>
-
-        <div class="top-row">
-            <button id="back-setup" class="secondary-button">설정 다시하기</button>
-        </div>
-
-        <div id="chat-info" class="chat-info"></div>
-
-        <div id="chat-preview" class="chat-preview">
-            <!-- 대화 버블 삽입 영역 -->
-        </div>
-
-        <div class="input-area">
-            <input id="chat-input" type="text" placeholder="메시지를 입력하세요..." />
-            <button id="send-button">전송</button>
-        </div>
+<div class="app-container">
+    <div class="header">
+        <h1>연애 시뮬레이션 챗봇</h1>
+        <p>지금부터는 상대방 입장에서 직접 대화해요</p>
     </div>
 
-    <script>
-        const API_BASE = "http://dorandoran.duckdns.org:8000";
+    <div class="top-row">
+        <button id="back-setup" class="secondary-button">설정 다시하기</button>
+    </div>
 
-        const backSetupBtn = document.getElementById("back-setup");
-        const chatInfo = document.getElementById("chat-info");
-        const chatPreview = document.getElementById("chat-preview");
-        const chatInput = document.getElementById("chat-input");
-        const sendButton = document.getElementById("send-button");
+    <div id="chat-info" class="chat-info"></div>
+    <div id="chat-preview" class="chat-preview"></div>
 
-        let chatConfig = null;
-        let history = [];
+    <div class="input-area">
+        <input id="chat-input" type="text" placeholder="메시지를 입력하세요..." />
+        <button id="send-button">전송</button>
+    </div>
+</div>
 
-        function escapeHtml(text) {
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;");
+<script>
+    const API_BASE = "http://dorandoran.duckdns.org:8000";
+
+    const chatPreview = document.getElementById("chat-preview");
+    const chatInput = document.getElementById("chat-input");
+    const sendButton = document.getElementById("send-button");
+    const chatInfo = document.getElementById("chat-info");
+
+    let chatConfig = JSON.parse(localStorage.getItem("chatConfig"));
+    let history = [];
+
+    function escapeHtml(text) {
+        return text.replace(/&/g, "&amp;")
+                   .replace(/</g, "&lt;")
+                   .replace(/>/g, "&gt;");
+    }
+
+    function formatMessage(text) {
+        return escapeHtml(text).replace(/\n/g, "<br>");
+    }
+
+    function appendBubble(role, text) {
+        const div = document.createElement("div");
+        div.classList.add("bubble", role === "user" ? "user" : "ai");
+        div.innerHTML = formatMessage(text);
+        chatPreview.appendChild(div);
+        chatPreview.scrollTop = chatPreview.scrollHeight;
+    }
+
+    function appendLoadingBubble() {
+        const div = document.createElement("div");
+        div.classList.add("bubble", "ai", "loading-dots");
+        chatPreview.appendChild(div);
+        chatPreview.scrollTop = chatPreview.scrollHeight;
+        return div;
+    }
+
+    async function sendMessage() {
+        const text = chatInput.value.trim();
+        if (!text) return;
+
+        appendBubble("user", text);
+        history.push({ role: "user", content: text });
+        chatInput.value = "";
+        sendButton.disabled = true;
+
+        const loadingBubble = appendLoadingBubble();
+
+        try {
+            const res = await fetch(`${API_BASE}/chat`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    config: chatConfig,
+                    history,
+                    user_input: text
+                })
+            });
+
+            const data = await res.json();
+            loadingBubble.classList.remove("loading-dots");
+            loadingBubble.innerHTML = formatMessage(data.reply);
+            history.push({ role: "assistant", content: data.reply });
+
+        } catch {
+            loadingBubble.classList.remove("loading-dots");
+            loadingBubble.textContent = "오류가 발생했어요. 잠시 후 다시 시도해 주세요.";
+        } finally {
+            sendButton.disabled = false;
         }
+    }
 
-        function formatMessage(text) {
-            // HTML 이스케이프 후 줄바꿈을 <br>로
-            const escaped = escapeHtml(text);
-            return escaped.replace(/\n/g, "<br>");
-        }
+    sendButton.addEventListener("click", sendMessage);
+    chatInput.addEventListener("keydown", e => {
+        if (e.key === "Enter") sendMessage();
+    });
 
-        function appendBubble(role, text) {
-            const div = document.createElement("div");
-            div.classList.add("bubble");
-            div.classList.add(role === "user" ? "user" : "ai");
-            div.innerHTML = formatMessage(text);
-            chatPreview.appendChild(div);
-            chatPreview.scrollTop = chatPreview.scrollHeight;
-        }
-
-        function buildChatInfo(config) {
-            const gMy = config.my_gender || "알 수 없음";
-            const gPartner = config.partner_gender || "알 수 없음";
-            return `나(${gMy}): ${config.my_name || "나"} / 상대(${gPartner}): ${config.partner_name || "상대방"}`;
-        }
-
-        function loadConfig() {
-            const raw = localStorage.getItem("chatConfig");
-            if (!raw) return null;
-            try {
-                return JSON.parse(raw);
-            } catch {
-                return null;
-            }
-        }
-
-        async function sendMessage() {
-            const text = chatInput.value.trim();
-            if (!text || !chatConfig) return;
-
-            appendBubble("user", text);
-            history.push({ role: "user", content: text });
-            chatInput.value = "";
-            chatInput.focus();
-            sendButton.disabled = true;
-
-            try {
-                const response = await fetch(`${API_BASE}/chat`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        config: chatConfig,
-                        history: history,
-                        user_input: text,
-                    }),
-                });
-
-                if (!response.ok) {
-                    throw new Error("서버 오류");
-                }
-
-                const data = await response.json();
-                const reply = data.reply || "";
-                appendBubble("ai", reply);
-                history.push({ role: "assistant", content: reply });
-            } catch (err) {
-                console.error(err);
-                appendBubble("ai", "잠깐 오류가 난 것 같아. 조금 있다가 다시 얘기해보자?");
-            } finally {
-                sendButton.disabled = false;
-            }
-        }
-
-        window.addEventListener("DOMContentLoaded", () => {
-            chatConfig = loadConfig();
-            if (!chatConfig) {
-                alert("먼저 설정 페이지에서 정보를 입력해주세요.");
-                window.location.href = "setup.html";
-                return;
-            }
-
-            chatInfo.textContent = buildChatInfo(chatConfig);
-
-            // 첫 인사
-            const partnerName = chatConfig.partner_name || "상대방";
-            appendBubble(
-                "ai",
-                `안녕, 나 ${partnerName}야.\n이렇게 얘기하니까 조금 어색하긴 한데… 오늘은 어떻게 보냈어?`
-            );
-        });
-
-        sendButton.addEventListener("click", sendMessage);
-        chatInput.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-
-        backSetupBtn.addEventListener("click", () => {
-            window.location.href = "setup.html";
-        });
-    </script>
+    if (chatConfig) {
+        chatInfo.textContent =
+            `나(${chatConfig.my_gender}) ${chatConfig.my_name} / 상대(${chatConfig.partner_gender}) ${chatConfig.partner_name}`;
+        appendBubble("ai", `안녕, 나 ${chatConfig.partner_name}야.\n오늘은 어떻게 보냈어?`);
+    }
+</script>
 </body>
 </html>
