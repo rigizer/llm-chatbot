@@ -86,18 +86,39 @@
   - 로그인이 완료되면 맨 마지막에 `Login Succeeded`가 뜸
 
 - docker 컨테이너 빌드
+  - buildx 컨테이너 생성 (최초 1회)
   ```
-  .
+  docker buildx create --use --name mybuilder
+  ```
+  - 멀티 플랫폼 타겟 빌드
+  ```
+  docker buildx build --platform linux/amd64,linux/arm64 -t rigizer/llm-chatbot:latest --push .
   ```
 - docker 컨테이너 실행
   ```
-  .
+  docker stop backend || true
+  ```
+  ```
+  docker rm backend || true
+  ```
+  ```
+  docker rmi backend || true
+  ```
+  ```
+  docker pull rigizer/llm-chatbot:latest
+  ```
+  ```
+  docker run -d --restart always -e TZ=Asia/Seoul -p 8000:8000/tcp --name backend rigizer/llm-chatbot:latest
   ```
 - docker 컨테이너 종료
   ```
-  .
+  docker stop backend
   ```
 - docker 컨테이너 삭제
   ```
-  .
+  docker rm backend
+  ```
+- docker 이미지 삭제
+  ```
+  docker rmi backend
   ```
