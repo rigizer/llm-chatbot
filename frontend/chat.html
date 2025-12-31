@@ -1,0 +1,299 @@
+<!-- frontend/chat.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>연애 시뮬레이션 챗봇</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ffb6c1, #ffc0cb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            height: 85vh;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 20px 18px 12px;
+            text-align: center;
+            background: linear-gradient(135deg, #ff8fab, #ffb3c6);
+            color: #fff;
+        }
+
+        .header h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            margin-top: 6px;
+            font-size: 0.85rem;
+            opacity: 0.95;
+        }
+
+        .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px 0;
+            background: #fff0f5;
+        }
+
+        .chat-info {
+            font-size: 0.75rem;
+            color: #b46a82;
+            padding: 4px 10px;
+            background: #fff0f5;
+        }
+
+        .secondary-button {
+            border: none;
+            background: transparent;
+            font-size: 0.75rem;
+            color: #f26a8a;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .chat-preview {
+            flex: 1;
+            padding: 10px 10px 6px;
+            background: #fff0f5;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+        }
+
+        .bubble {
+            max-width: 75%;
+            padding: 10px 13px;
+            border-radius: 18px;
+            font-size: 0.87rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .bubble.ai {
+            background: #ffe0eb;
+            align-self: flex-start;
+            border-bottom-left-radius: 6px;
+        }
+
+        .bubble.user {
+            background: #ff8fab;
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 6px;
+        }
+
+        .input-area {
+            padding: 10px;
+            border-top: 1px solid #f1c6d3;
+            background: #fff;
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 20px;
+            border: 1px solid #f3b3c5;
+            font-size: 0.87rem;
+            outline: none;
+        }
+
+        .input-area button {
+            padding: 0 16px;
+            border-radius: 20px;
+            border: none;
+            background: #ff6f91;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .input-area button:hover {
+            background: #ff4f7b;
+        }
+
+        .input-area button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 480px) {
+            .app-container {
+                height: 100vh;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>연애 시뮬레이션 챗봇</h1>
+            <p>지금부터는 상대방 입장에서 직접 대화해요</p>
+        </div>
+
+        <div class="top-row">
+            <button id="back-setup" class="secondary-button">설정 다시하기</button>
+        </div>
+
+        <div id="chat-info" class="chat-info"></div>
+
+        <div id="chat-preview" class="chat-preview">
+            <!-- 대화 버블 삽입 영역 -->
+        </div>
+
+        <div class="input-area">
+            <input id="chat-input" type="text" placeholder="메시지를 입력하세요..." />
+            <button id="send-button">전송</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:8000";
+
+        const backSetupBtn = document.getElementById("back-setup");
+        const chatInfo = document.getElementById("chat-info");
+        const chatPreview = document.getElementById("chat-preview");
+        const chatInput = document.getElementById("chat-input");
+        const sendButton = document.getElementById("send-button");
+
+        let chatConfig = null;
+        let history = [];
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+        }
+
+        function formatMessage(text) {
+            // HTML 이스케이프 후 줄바꿈을 <br>로
+            const escaped = escapeHtml(text);
+            return escaped.replace(/\n/g, "<br>");
+        }
+
+        function appendBubble(role, text) {
+            const div = document.createElement("div");
+            div.classList.add("bubble");
+            div.classList.add(role === "user" ? "user" : "ai");
+            div.innerHTML = formatMessage(text);
+            chatPreview.appendChild(div);
+            chatPreview.scrollTop = chatPreview.scrollHeight;
+        }
+
+        function buildChatInfo(config) {
+            const gMy = config.my_gender || "알 수 없음";
+            const gPartner = config.partner_gender || "알 수 없음";
+            return `나(${gMy}): ${config.my_name || "나"} / 상대(${gPartner}): ${config.partner_name || "상대방"}`;
+        }
+
+        function loadConfig() {
+            const raw = localStorage.getItem("chatConfig");
+            if (!raw) return null;
+            try {
+                return JSON.parse(raw);
+            } catch {
+                return null;
+            }
+        }
+
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text || !chatConfig) return;
+
+            appendBubble("user", text);
+            history.push({ role: "user", content: text });
+            chatInput.value = "";
+            chatInput.focus();
+            sendButton.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/chat`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        config: chatConfig,
+                        history: history,
+                        user_input: text,
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error("서버 오류");
+                }
+
+                const data = await response.json();
+                const reply = data.reply || "";
+                appendBubble("ai", reply);
+                history.push({ role: "assistant", content: reply });
+            } catch (err) {
+                console.error(err);
+                appendBubble("ai", "잠깐 오류가 난 것 같아. 조금 있다가 다시 얘기해보자?");
+            } finally {
+                sendButton.disabled = false;
+            }
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            chatConfig = loadConfig();
+            if (!chatConfig) {
+                alert("먼저 설정 페이지에서 정보를 입력해주세요.");
+                window.location.href = "setup.html";
+                return;
+            }
+
+            chatInfo.textContent = buildChatInfo(chatConfig);
+
+            // 첫 인사
+            const partnerName = chatConfig.partner_name || "상대방";
+            appendBubble(
+                "ai",
+                `안녕, 나 ${partnerName}야.\n이렇게 얘기하니까 조금 어색하긴 한데… 오늘은 어떻게 보냈어?`
+            );
+        });
+
+        sendButton.addEventListener("click", sendMessage);
+        chatInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        backSetupBtn.addEventListener("click", () => {
+            window.location.href = "setup.html";
+        });
+    </script>
+</body>
+</html>

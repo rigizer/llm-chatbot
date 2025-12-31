@@ -1,9 +1,10 @@
+<!-- frontend/setup.html -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>연애 시뮬레이션 챗봇 서비스</title>
+    <title>연애 시뮬레이션 - 설정</title>
 
     <style>
         * {
@@ -51,65 +52,101 @@
             opacity: 0.95;
         }
 
-        .chat-preview {
+        .content {
             flex: 1;
-            padding: 20px;
+            padding: 16px 18px 18px;
             background: #fff0f5;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 14px;
+            overflow-y: auto;
         }
 
-        .bubble {
-            max-width: 75%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            font-size: 0.9rem;
-            line-height: 1.4;
+        .setup-hint {
+            font-size: 0.8rem;
+            color: #b46a82;
+            margin-bottom: 10px;
         }
 
-        .bubble.ai {
-            background: #ffe0eb;
-            align-self: flex-start;
-            border-bottom-left-radius: 6px;
+        .setup-group {
+            margin-bottom: 12px;
         }
 
-        .bubble.user {
-            background: #ff8fab;
-            color: #fff;
-            align-self: flex-end;
-            border-bottom-right-radius: 6px;
+        #relationship-desc {
+            min-height: 140px;  /* 원하는 높이로 숫자만 조정하면 됨 */
         }
 
-        .input-area {
-            padding: 16px;
-            border-top: 1px solid #f1c6d3;
-            background: #fff;
-            display: flex;
-            gap: 10px;
+        .setup-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 4px;
         }
 
-        .input-area input {
-            flex: 1;
-            padding: 12px 14px;
-            border-radius: 20px;
+        .setup-group input,
+        .setup-group textarea {
+            width: 100%;
+            padding: 9px 11px;
+            border-radius: 12px;
             border: 1px solid #f3b3c5;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             outline: none;
         }
 
-        .input-area button {
-            padding: 0 18px;
+        .setup-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .setup-group input:focus,
+        .setup-group textarea:focus {
+            border-color: #ff8fab;
+            box-shadow: 0 0 0 2px rgba(255, 143, 171, 0.25);
+        }
+
+        .gender-switch-group {
+            margin-bottom: 12px;
+        }
+
+        .gender-switch-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .gender-switch {
+            display: inline-flex;
+            border-radius: 999px;
+            border: 1px solid #f3b3c5;
+            overflow: hidden;
+        }
+
+        .gender-option {
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: #b46a82;
+        }
+
+        .gender-option.active {
+            background: #ff8fab;
+            color: #fff;
+        }
+
+        .setup-button {
+            margin-top: 8px;
+            width: 100%;
+            padding: 11px 0;
             border-radius: 20px;
             border: none;
             background: #ff6f91;
             color: #fff;
             font-weight: 600;
+            font-size: 0.95rem;
             cursor: pointer;
         }
 
-        .input-area button:hover {
+        .setup-button:hover {
             background: #ff4f7b;
         }
 
@@ -121,27 +158,116 @@
         }
     </style>
 </head>
-
 <body>
     <div class="app-container">
         <div class="header">
-            <h1>연애 시뮬레이션 챗봇 서비스</h1>
-            <p>AI와 설레는 대화를 시작해보세요</p>
+            <h1>연애 시뮬레이션 설정</h1>
+            <p>먼저 나와 상대방의 정보를 알려주세요</p>
         </div>
 
-        <div class="chat-preview">
-            <div class="bubble ai">
-                안녕하세요 😊 오늘 어떤 이야기를 나누고 싶으신가요?
-            </div>
-            <div class="bubble user">
-                설레는 연애 대화를 해보고 싶어요!
-            </div>
-        </div>
+        <div class="content">
+            <p class="setup-hint">
+                아래 정보를 바탕으로, AI가 '상대방' 입장에서 직접 대화합니다.
+            </p>
 
-        <div class="input-area">
-            <input type="text" placeholder="메시지를 입력하세요..." disabled />
-            <button disabled>전송</button>
+            <div class="setup-group">
+                <label for="my-name">내 이름(호칭)</label>
+                <input id="my-name" type="text" placeholder="예: 나, 민수, 저" />
+            </div>
+
+            <div class="setup-group">
+                <label for="partner-name">상대방 이름(호칭)</label>
+                <input id="partner-name" type="text" placeholder="예: 그 사람, 지영, 선배" />
+            </div>
+
+            <div class="gender-switch-group">
+                <span class="gender-switch-label">내 성별</span>
+                <div class="gender-switch" data-target="my-gender">
+                    <button type="button" class="gender-option active" data-value="남성">남성</button>
+                    <button type="button" class="gender-option" data-value="여성">여성</button>
+                </div>
+            </div>
+
+            <div class="gender-switch-group">
+                <span class="gender-switch-label">상대방 성별</span>
+                <div class="gender-switch" data-target="partner-gender">
+                    <button type="button" class="gender-option active" data-value="남성">남성</button>
+                    <button type="button" class="gender-option" data-value="여성">여성</button>
+                </div>
+            </div>
+
+            <div class="setup-group">
+                <label for="my-personality">내 성격</label>
+                <textarea id="my-personality" placeholder="예: 소심하지만 다정하고, 먼저 연락하는 편은 아님"></textarea>
+            </div>
+
+            <div class="setup-group">
+                <label for="partner-personality">상대방 성격</label>
+                <textarea id="partner-personality" placeholder="예: 말 수는 적지만 잘 챙겨주고, 감정을 잘 드러내지 않음"></textarea>
+            </div>
+
+            <div class="setup-group">
+                <label for="relationship-desc">현재 관계를 상세하게 적어주세요</label>
+                <textarea
+                    id="relationship-desc"
+                    placeholder="예: 회사에서 같은 팀으로 6개월째 같이 일하고 있고, 요즘 퇴근 후에 둘이서만 자주 밥을 먹는다. 서로 장난도 많이 치지만, 아직 고백은 안 한 상태. 가끔 연락 텀이 길어지면 내가 먼저 연락하는 편이다. 등 최대한 자세히 써 주세요."
+                ></textarea>
+            </div>
+
+            <button id="go-chat" class="setup-button">
+                설정 완료하고 대화 시작하기
+            </button>
         </div>
     </div>
+
+    <script>
+        const goChatBtn = document.getElementById("go-chat");
+
+        // 성별 스위치 로직
+        function setupGenderSwitches() {
+            const switches = document.querySelectorAll(".gender-switch");
+            switches.forEach(sw => {
+                sw.addEventListener("click", (e) => {
+                    const btn = e.target.closest(".gender-option");
+                    if (!btn) return;
+                    sw.querySelectorAll(".gender-option").forEach(b => b.classList.remove("active"));
+                    btn.classList.add("active");
+                });
+            });
+        }
+
+        function getSelectedGender(targetName) {
+            const sw = document.querySelector(`.gender-switch[data-target="${targetName}"]`);
+            if (!sw) return "";
+            const active = sw.querySelector(".gender-option.active");
+            return active ? active.dataset.value : "";
+        }
+
+        setupGenderSwitches();
+
+        goChatBtn.addEventListener("click", () => {
+            const myName = document.getElementById("my-name").value.trim() || "나";
+            const partnerName = document.getElementById("partner-name").value.trim() || "상대방";
+            const myPersonality = document.getElementById("my-personality").value.trim();
+            const partnerPersonality = document.getElementById("partner-personality").value.trim();
+            const relationshipDesc = document.getElementById("relationship-desc").value.trim();
+
+            const myGender = getSelectedGender("my-gender") || "알려지지 않음";
+            const partnerGender = getSelectedGender("partner-gender") || "알려지지 않음";
+
+            const config = {
+                my_name: myName,
+                partner_name: partnerName,
+                my_personality: myPersonality,
+                partner_personality: partnerPersonality,
+                relationship_desc: relationshipDesc,
+                my_gender: myGender,
+                partner_gender: partnerGender,
+            };
+
+            localStorage.setItem("chatConfig", JSON.stringify(config));
+            window.location.href = "chat.html";
+        });
+    </script>
 </body>
 </html>
