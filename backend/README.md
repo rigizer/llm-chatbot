@@ -13,7 +13,9 @@
 
 - cd 명령어를 이용해 backend 디렉토리로 이동
 - 가상환경 생성
-  - python -m venv .venv
+  ```
+  python -m venv .venv
+  ```
   - 최초 1회만 진행
 - 가상환경 활성화 (작업 전 진행)
   ```
